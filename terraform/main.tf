@@ -72,24 +72,8 @@ module "eks" {
       }
     }
     
-    gpu = {
-      desired_size = 1
-      min_size     = 1
-      max_size     = 2
-      
-      instance_types = ["g4dn.xlarge"]
-      
-      labels = {
-        workload = "gpu"
-        "nvidia.com/gpu" = "true"
-      }
-      
-      taints = [{
-        key    = "nvidia.com/gpu"
-        value  = "true"
-        effect = "NO_SCHEDULE"
-      }]
-    }
+    # GPU node group removed due to AWS quota constraints
+    # Platform supports GPU monitoring - demo uses simulated metrics
   }
 
   tags = {
