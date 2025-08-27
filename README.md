@@ -1,112 +1,81 @@
-# 💰 Project 18: AI FinOps Platform
+# Project 18: AI FinOps Platform
 
-## 🎯 TLDR
+## Overview
 
-Built a real-time Kubernetes cost optimisation platform that processes **millions of cost events** through Kafka streaming, providing <30 second anomaly detection for GPU utilisation and AI API spending.
+Apache Kafka streaming platform on Kubernetes for cost event processing. Strimzi operator manages Kafka cluster on AWS EKS. OpenCost, Prometheus, and Grafana provide cost monitoring and visualisation.
 
-**Key Achievements:**
-- ✅ Event-driven architecture processing cost events in real-time
-- ✅ Kafka cluster with intelligent partitioning (23 partitions total)
-- ✅ GPU cost tracking infrastructure (NVIDIA DCGM ready)
-- ✅ OpenCost + Prometheus + Grafana monitoring stack
-- ✅ Designed for 50% GPU cost reduction through utilisation insights
+## Architecture
 
-**Live Demo:** Platform running on AWS EKS with Strimzi Kafka and real-time cost monitoring
-
----
-
-## 🚀 Project Overview
-
-### The Problem
-AI workloads can consume 70% of cloud spending. Companies have no real-time visibility into:
-- GPU utilisation (GPUs idle = money wasted)
-- AI API token consumption (runaway OpenAI costs)
-- Cost anomalies until the monthly bill arrives
-- Which team/model is driving costs
-
-### The Solution  
-An event-streaming FinOps platform that ingests cost events from multiple sources, processes them through Kafka, and provides instant visibility into AI infrastructure spending.
-
-### The Real-Time Architecture
 ```
 GPU Metrics ──┐
               ├──> Kafka Broker ──> Stream Processing ──> Anomaly Detection
-API Costs ────┘    (3 brokers)                           (<30 seconds)
+API Costs ────┘    (3 brokers)                           
                         ↓
                    Cost Topics
-            (Intelligently partitioned)
+            (Partitioned by volume)
 ```
 
----
+## Technologies Used
 
-## 🏗️ Architecture
+### Core Platform
+- Kubernetes: EKS 1.28 - Container orchestration
+- Apache Kafka: v3.5.0 via Strimzi operator v0.39.0
+- Terraform: v1.5 - Infrastructure as Code
+- AWS: EKS, VPC, ELB (eu-west-2)
 
-### Core Components
+### Monitoring Stack
+- OpenCost: v1.25 - Kubernetes cost allocation
+- Prometheus: v2.46 - Metrics collection
+- Grafana: v10.0 - Visualisation
+- kube-prometheus-stack: Complete monitoring solution
 
-#### 1. **Apache Kafka (Strimzi)**
-- 3 broker cluster for high availability
-- 3 topics with intelligent partitioning:
-  - `gpu-utilization-events` (10 partitions) - high-volume GPU metrics
-  - `ai-api-costs` (10 partitions) - continuous API token tracking
-  - `cost-anomalies` (3 partitions) - low-volume anomaly events
-- Handles millions of events per hour with <100ms latency
+## Project Structure
 
-#### 2. **Cost Monitoring Stack**
-- **OpenCost**: Real-time Kubernetes cost allocation
-- **Prometheus**: Metrics collection and storage
-- **Grafana**: Visualisation dashboards
-- **NVIDIA DCGM**: GPU metrics exporter (GPU-ready infrastructure)
-
-#### 3. **Infrastructure**
-- **EKS**: Kubernetes 1.28 on AWS (eu-west-2)
-- **Nodes**: 3x t3.large (architecture supports g4dn.xlarge GPU nodes)
-- **Networking**: VPC with private subnets
-- **Terraform**: Complete Infrastructure as Code
-
----
-
-## 💰 Business Impact
-
-### Quantifiable Metrics
-- **GPU Cost Reduction**: 50% through utilisation monitoring
-- **API Cost Savings**: 40% via usage tracking
-- **Alert Latency**: <30 seconds for anomalies
-- **Prevention**: £100K+ monthly overrun protection
-
-### Cost Intelligence Features
-- Real-time GPU utilisation tracking
-- AI API token consumption monitoring  
-- Team-based cost allocation
-- Automated spike detection
-- Budget threshold alerts
-
----
-
-## 🛠️ Technical Implementation
-
-### Infrastructure as Code
-```hcl
-# EKS Cluster with monitoring stack
-module "eks" {
-  source = "terraform-aws-modules/eks/aws"
-  
-  eks_managed_node_groups = {
-    standard = {
-      instance_types = ["t3.large"]
-      desired_size = 3
-    }
-    # Architecture supports GPU nodes (g4dn.xlarge)
-  }
-}
+```
+project-18-ai-finops/
+├── terraform/
+│   ├── main.tf              # EKS cluster configuration
+│   ├── variables.tf         # Variable definitions
+│   └── outputs.tf           # Output values
+├── kafka/
+│   ├── strimzi-operator.yaml    # Kafka operator deployment
+│   ├── kafka-cluster.yaml       # 3-broker cluster config
+│   └── topics/
+│       ├── gpu-utilization-events.yaml    # 10 partitions
+│       ├── ai-api-costs.yaml              # 10 partitions
+│       └── cost-anomalies.yaml            # 3 partitions
+└── monitoring/
+    ├── prometheus-stack.yaml    # Monitoring deployment
+    ├── opencost.yaml            # Cost allocation
+    └── grafana-dashboards.yaml  # Dashboard configurations
 ```
 
-### Deployed Components
-- **Strimzi Kafka Operator**: v0.39.0 for Kafka management
-- **Prometheus Stack**: Full kube-prometheus-stack
-- **OpenCost**: Connected to Prometheus for cost metrics
-- **Kafka Cluster**: 3 brokers with Zookeeper ensemble
+## Implementation
 
-### Kafka Topics Configuration
+### Kafka Cluster Configuration
+
+The platform uses Strimzi operator to manage a 3-broker Kafka cluster with Zookeeper ensemble. Three topics handle different event types:
+
+- gpu-utilization-events: 10 partitions for GPU metrics
+- ai-api-costs: 10 partitions for API token tracking
+- cost-anomalies: 3 partitions for anomaly events
+
+### Infrastructure Components
+
+- EKS cluster with 3 t3.large nodes
+- VPC with private subnets
+- Application load balancer
+- Security groups and IAM roles
+
+### Monitoring Stack
+
+- Prometheus scrapes metrics every 15 seconds
+- OpenCost calculates Kubernetes resource costs
+- Grafana provides dashboards for visualisation
+- Pod-level cost granularity
+
+## Kafka Topics
+
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
@@ -119,101 +88,39 @@ spec:
     retention.ms: 86400000  # 24 hour retention
 ```
 
----
+## Screenshots
 
-## 📊 Platform Capabilities
+1. EKS cluster with 3 nodes
+2. Kafka topics with partition configuration
+3. Grafana dashboard showing resource utilisation
+4. OpenCost UI for cost allocation
+5. All platform pods running
 
-### Cost Visibility
-- Kubernetes resource costs (CPU, memory, storage)
-- GPU utilisation percentages and waste detection
-- AI API token consumption by model
-- Team/namespace cost allocation
-- Pod-level cost granularity
+## Deployment Process
 
-### Monitoring & Observability
-- Grafana dashboards for resource utilisation
-- OpenCost UI for Kubernetes costs
-- Prometheus metrics with 15-second scraping
-- Kafka topic lag monitoring
-- 100% cluster visibility
+1. Terraform creates EKS cluster and networking
+2. Strimzi operator deployed to cluster
+3. Kafka cluster and topics created
+4. Prometheus stack installed via Helm
+5. OpenCost connected to Prometheus
+6. Grafana dashboards configured
 
----
+## Features
 
-## 📸 Screenshots
+### Event Streaming
+- Kafka cluster with 3 brokers
+- 23 total partitions across topics
+- 24-hour event retention
+- Topic monitoring
 
-![EKS Cluster](screenshots/eks-cluster.png)
-*EKS cluster with 3 nodes ready for GPU workloads*
+### Cost Monitoring
+- Kubernetes resource cost tracking
+- Namespace-based allocation
+- Pod-level granularity
+- Real-time metrics collection
 
-![Kafka Topics](screenshots/kafka-topics.png)
-*Event streaming topics intelligently partitioned based on volume*
-
-![Grafana Dashboard](screenshots/grafana-dashboard.png)
-*Real-time resource utilisation monitoring*
-
-![OpenCost UI](screenshots/opencost-ui.png)
-*Kubernetes cost allocation and tracking*
-
-![All Pods Running](screenshots/pods-running.png)
-*Complete platform deployment with all components operational*
-
----
-
-## 🎯 Key Innovations
-
-1. **Event-Driven Architecture**: Unlike traditional polling-based cost tools, uses Kafka streaming for real-time processing
-
-2. **GPU Waste Detection**: Identifies idle GPUs costing £420/day in typical enterprise
-
-3. **Multi-Source Correlation**: Combines Kubernetes metrics, GPU telemetry, and API usage in single platform
-
-4. **Sub-Minute Anomaly Detection**: Critical for preventing runaway AI experiments
-
----
-
-## 🏆 Why This Matters
-
-This platform addresses the #1 challenge in AI infrastructure: **cost visibility and control**. 
-
-Unlike traditional monitoring that shows costs after they're incurred, this event-driven architecture enables:
-- **Proactive** cost management (not reactive)
-- **Real-time** decisions (not monthly reviews)
-- **Granular** attribution (not aggregate bills)
-
-**Production Ready**: In production, this platform connects to NVIDIA DCGM for real GPU metrics and API gateways for token tracking, processing millions of events per hour with guaranteed sub-30-second alerting.
-
-Built with production-grade technologies (Kafka, Kubernetes, Terraform) following FinOps Foundation best practices.
-
----
-
-## 🛠️ Technologies Used
-
-### Core Platform
-- **Kubernetes**: EKS 1.28 - Container orchestration
-- **Apache Kafka**: v3.5.0 via Strimzi operator v0.39.0
-- **Terraform**: v1.5 - Infrastructure as Code
-- **AWS**: EKS, VPC, ELB (eu-west-2)
-
-### Monitoring Stack
-- **OpenCost**: v1.25 - Kubernetes cost allocation
-- **Prometheus**: v2.46 - Metrics collection
-- **Grafana**: v10.0 - Visualisation
-- **kube-prometheus-stack**: Complete monitoring solution
-
-### Architecture Patterns
-- **Event Streaming**: Kafka for real-time processing
-- **GitOps Ready**: Declarative configurations
-- **FinOps**: Cost allocation and optimisation
-
----
-
-## 📈 Project Metrics
-
-- **Infrastructure**: 3-node EKS cluster
-- **Kafka Performance**: 3 brokers, 23 partitions total
-- **Monitoring Coverage**: 100% cluster visibility
-- **Cost Granularity**: Pod-level cost allocation
-- **Deployment Time**: < 30 minutes full stack
-
----
-
-*Platform demonstrates enterprise-grade FinOps capabilities with real-time event streaming for AI cost optimisation.*
+### Infrastructure
+- Managed Kubernetes on EKS
+- Production-grade networking
+- Terraform-managed resources
+- GitOps-ready configurations
