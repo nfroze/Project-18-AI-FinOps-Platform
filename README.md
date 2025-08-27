@@ -90,11 +90,11 @@ spec:
 
 ## Screenshots
 
-1. EKS cluster with 3 nodes
-2. Kafka topics with partition configuration
-3. Grafana dashboard showing resource utilisation
-4. OpenCost UI for cost allocation
-5. All platform pods running
+1. [EKS cluster with 3 nodes](screenshots/eks-cluster.png)
+2. [Kafka topics with partition configuration](screenshots/kafka-topics.png)
+3. [Grafana dashboard showing resource utilisation](screenshots/grafana-dashboard.png)
+4. [OpenCost UI for cost allocation](screenshots/opencost-ui.png)
+5. [All platform pods running](screenshots/pods-running.png)
 
 ## Deployment Process
 
