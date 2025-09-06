@@ -8,8 +8,12 @@ AWS EKS • Apache Kafka • Strimzi • OpenCost • Prometheus • Grafana •
 
 ## Screenshots
 
-- [EKS cluster](screenshots/eks-cluster.png)
-- [Kafka topics](screenshots/kafka-topics.png)
-- [Grafana dashboard](screenshots/grafana-dashboard.png)
-- [OpenCost UI](screenshots/opencost-ui.png)
-- [Platform pods](screenshots/pods-running.png)
+![EKS cluster](screenshots/eks-cluster.png)
+
+![Kafka topics](screenshots/kafka-topics.png)
+
+![Grafana dashboard](screenshots/grafana-dashboard.png)
+
+![OpenCost UI](screenshots/opencost-ui.png)
+
+![Platform pods](screenshots/pods-running.png)
